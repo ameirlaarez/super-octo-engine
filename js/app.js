@@ -1,32 +1,42 @@
 import { AppState } from './state.js';
 import { DB } from './db.js';
-import './auth.js';
-
 import { renderDashboard } from './dashboard.js';
-import { renderSuppliers } from './suppliers.js';
-import { renderProducts } from './products.js';
-import { renderPayments } from './payments.js';
-import { renderReports } from './reports.js';
 
-DB.init();
-
-window.showSection = function(section) {
-  AppState.section = section;
+// אתחול האפליקציה
+function init() {
+  DB.init();
+  AppState.section = 'dashboard';
   render();
-};
-
-function render() {
-  const c = document.getElementById('content-area');
-  document.getElementById('section-title').innerText = AppState.section;
-
-  if(AppState.section==='dashboard') renderDashboard(c);
-  if(AppState.section==='suppliers') renderSuppliers(c);
-  if(AppState.section==='products') renderProducts(c);
-  if(AppState.section==='payments') renderPayments(c);
-  if(AppState.section==='reports') renderReports(c);
 }
 
-document.getElementById('current-date').innerText =
-  new Date().toLocaleDateString('he-IL');
+// ניווט בין מסכים
+function showSection(sectionName) {
+  AppState.section = sectionName;
+  render();
+}
 
-showSection('dashboard');
+// רינדור ראשי
+function render() {
+  const app = document.getElementById('app');
+  if (!app) {
+    console.error('App container not found');
+    return;
+  }
+
+  app.innerHTML = '';
+
+  switch (AppState.section) {
+    case 'dashboard':
+      renderDashboard(app);
+      break;
+
+    default:
+      app.innerHTML = `<h2>מסך לא קיים</h2>`;
+  }
+}
+
+// חשיפה ל־HTML (חובה ב־ES Modules)
+window.showSection = showSection;
+
+// הפעלת האפליקציה
+init();
