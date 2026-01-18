@@ -1,23 +1,19 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he">
 <head>
-  <meta charset="UTF-8">
-  <title>Store Keeper Suite</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <title>Small Tools Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 
-<body class="flex h-screen overflow-hidden bg-sky-50">
+<body>
 
-<aside class="w-64 bg-slate-800 text-white flex flex-col">
-  <div class="p-6 text-xl font-bold border-b border-slate-700">
-    Store Keeper
-    <span class="block text-xs font-normal text-sky-300">v2.0</span>
-  </div>
+  <nav>
+    <button onclick="showSection('dashboard')">דשבורד</button>
+  </nav>
 
-  <nav class="flex-1">
-    <button onclick="showSection('dashboard')" class="nav-btn"><i class="fa fa-gauge ml-2"></i>דשבורד</button>
-    <button onclic
+  <main id="app"></main>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
