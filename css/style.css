@@ -1,1 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
+
+body {
+  font-family: 'Assistant', sans-serif;
+}
+
+.nav-btn {
+  width: 100%;
+  padding: 1rem;
+  text-align: right;
+  border-bottom: 1px solid #334155;
+}
+
+.nav-btn:hover {
+  background: #334155;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
 
