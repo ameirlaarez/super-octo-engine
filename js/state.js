@@ -1,5 +1,3 @@
 export const AppState = {
-  section: 'dashboard',
-  user: null
+  section: 'dashboard'
 };
-
