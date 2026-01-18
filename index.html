@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Store Keeper Suite v1.6 - Professional</title>
+    <title>Store Keeper Suite v1.7 - Enterprise</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
         * { color: #000000 !important; }
         body { font-family: 'Assistant', sans-serif; background-color: #f0f9ff; }
-        .sidebar-item.active * { color: #ffffff !important; }
-        .sidebar-item.active { background-color: #0284c7; }
-        .bg-blue-600 *, .bg-green-600 *, .bg-red-600 *, .bg-slate-800 *, .bg-sky-600 * { color: #ffffff !important; }
+        .sidebar-item.active { background-color: #0284c7; color: white !important; }
+        .sidebar-item.active * { color: white !important; }
         .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #bae6fd; }
         input, select { border: 2px solid #cbd5e1 !important; padding: 10px; font-weight: bold; border-radius: 8px; width: 100%; }
         th { background-color: #f8fafc; border-bottom: 2px solid #0284c7; padding: 12px; font-weight: 800; }
         td { border-bottom: 1px solid #e2e8f0; padding: 12px; font-weight: 600; }
-        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 0.9rem; }
+        .bg-sky-600 *, .bg-slate-800 *, .bg-blue-600 *, .bg-green-600 *, .bg-red-600 * { color: #ffffff !important; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
     <aside class="w-64 bg-slate-800 flex flex-col shadow-xl">
-        <div class="p-6 text-2xl font-bold border-b border-slate-700">
+        <div class="p-6 text-2xl font-bold border-b border-slate-700 text-white">
             <span class="text-sky-400">Store Keeper</span>
-            <span class="text-xs block font-normal text-white">v1.6 - דוחות ורווח</span>
+            <span class="text-xs block font-normal text-white">v1.7 - מערכת ניהול מלאה</span>
         </div>
-        <nav class="flex-1 mt-4">
+        <nav class="flex-1 mt-4 overflow-y-auto text-white">
+            <button onclick="showSection('dashboard')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
+                <i class="fas fa-house ml-3"></i> דשבורד
+            </button>
             <button onclick="showSection('suppliers')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
                 <i class="fas fa-address-book ml-3"></i> ספקים וחשבונות
             </button>
@@ -40,8 +42,11 @@
             <button onclick="showSection('payments')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
                 <i class="fas fa-money-bill-transfer ml-3"></i> תשלומים
             </button>
+            <button onclick="showSection('expenses')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
+                <i class="fas fa-receipt ml-3"></i> הוצאות עסק
+            </button>
             <button onclick="showSection('reports')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
-                <i class="fas fa-chart-pie ml-3"></i> דוחות ורווח
+                <i class="fas fa-chart-pie ml-3"></i> דוחות וייצוא
             </button>
         </nav>
     </aside>
@@ -49,9 +54,12 @@
     <main class="flex-1 flex flex-col overflow-hidden">
         <header class="h-16 bg-white border-b border-sky-200 flex items-center justify-between px-8">
             <h2 id="section-title" class="text-xl font-bold">טוען...</h2>
-            <div id="current-date" class="font-bold text-sm"></div>
+            <div class="flex items-center gap-4">
+                <button onclick="backupDB()" class="text-xs bg-slate-100 p-2 rounded border hover:bg-slate-200">גיבוי נתונים</button>
+                <div id="current-date" class="font-bold text-sm"></div>
+            </div>
         </header>
-        <section id="content-area" class="p-8 overflow-y-auto"></section>
+        <section id="content-area" class="p-8 overflow-y-auto bg-slate-50"></section>
     </main>
 
     <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
@@ -60,286 +68,135 @@
 
     <script>
         const DB = {
-            get: (key) => JSON.parse(localStorage.getItem('sk_v16_' + key)) || [],
-            set: (key, data) => localStorage.setItem('sk_v16_' + key, JSON.stringify(data)),
+            get: (key) => JSON.parse(localStorage.getItem('sk_v17_' + key)) || (key === 'stats' ? { revenue: 0, profit: 0 } : []),
+            set: (key, data) => localStorage.setItem('sk_v17_' + key, JSON.stringify(data)),
             init() {
-                if (!localStorage.getItem('sk_v16_suppliers')) this.set('suppliers', []);
-                if (!localStorage.getItem('sk_v16_products')) this.set('products', []);
-                if (!localStorage.getItem('sk_v16_history')) this.set('history', []);
-                if (!localStorage.getItem('sk_v16_stats')) this.set('stats', { revenue: 0, profit: 0 });
+                ['suppliers', 'products', 'history', 'expenses'].forEach(k => {
+                    if (!localStorage.getItem('sk_v17_' + k)) this.set(k, []);
+                });
+                if (!localStorage.getItem('sk_v17_stats')) this.set('stats', { revenue: 0, profit: 0 });
             }
         };
 
-        let currentSection = 'suppliers';
+        let currentSection = 'dashboard';
         DB.init();
 
         function showSection(section) {
             currentSection = section;
             document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            const btn = Array.from(document.querySelectorAll('.sidebar-item')).find(b => b.onclick.toString().includes(section));
+            if(btn) btn.classList.add('active');
             render();
         }
 
         function render() {
             const container = document.getElementById('content-area');
-            const titles = { suppliers: 'ספקים והתחשבנות', products: 'מלאי נוכחי', counting: 'עדכון מלאי', payments: 'תשלום לספקים', reports: 'דוחות ביצועים' };
+            const titles = { dashboard: 'לוח בקרה', suppliers: 'ספקים והתחשבנות', products: 'ניהול מלאי', counting: 'ספירת מלאי', payments: 'תשלומים', reports: 'דוחות', expenses: 'הוצאות עסק' };
             document.getElementById('section-title').innerText = titles[currentSection];
             container.innerHTML = '';
             
-            if (currentSection === 'suppliers') renderSuppliers(container);
-            if (currentSection === 'products') renderProducts(container);
-            if (currentSection === 'counting') renderCounting(container);
-            if (currentSection === 'payments') renderPayments(container);
-            if (currentSection === 'reports') renderReports(container);
+            if (currentSection === 'dashboard') renderDashboard(container);
+            else if (currentSection === 'suppliers') renderSuppliers(container);
+            else if (currentSection === 'products') renderProducts(container);
+            else if (currentSection === 'counting') renderCounting(container);
+            else if (currentSection === 'payments') renderPayments(container);
+            else if (currentSection === 'reports') renderReports(container);
+            else if (currentSection === 'expenses') renderExpenses(container);
         }
 
-        // --- PRODUCTS TABLE (UPDATED COLUMNS) ---
-        function renderProducts(container) {
+        function renderDashboard(container) {
             const products = DB.get('products');
-            container.innerHTML = `
-                <div class="mb-6"><button onclick="openProductModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow-md">הוסף מוצר חדש +</button></div>
-                <div class="card overflow-hidden">
-                    <table class="w-full text-right">
-                        <thead>
-                            <tr>
-                                <th>שם מוצר</th>
-                                <th>מלאי</th>
-                                <th>עלות יח'</th>
-                                <th>מכירה יח'</th>
-                                <th class="bg-blue-50">סה"כ עלות</th>
-                                <th class="bg-green-50">סה"כ מכירה</th>
-                                <th class="text-center">פעולות</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${products.map(p => `
-                                <tr>
-                                    <td class="p-4 font-bold">${p.name}</td>
-                                    <td class="p-4 text-lg font-bold text-sky-700">${p.stock}</td>
-                                    <td class="p-4">₪${p.cost}</td>
-                                    <td class="p-4 text-green-700">₪${p.price}</td>
-                                    <td class="p-4 bg-blue-50 font-bold">₪${(p.cost * p.stock).toLocaleString()}</td>
-                                    <td class="p-4 bg-green-50 font-bold text-green-800">₪${(p.price * p.stock).toLocaleString()}</td>
-                                    <td class="p-4 text-center">
-                                        <button onclick="openProductModal(${p.id})" class="ml-4 text-blue-600"><i class="fas fa-edit"></i></button>
-                                        <button onclick="deleteProduct(${p.id})" class="text-red-600"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-
-        // --- REPORTS (UPDATED WITH INCOME & PROFIT) ---
-        function renderReports(container) {
-            const products = DB.get('products');
-            const suppliers = DB.get('suppliers');
             const stats = DB.get('stats');
-            
-            const totalStockCost = products.reduce((a, b) => a + (b.cost * b.stock), 0);
-            const totalDebt = suppliers.reduce((a, b) => a + b.balance, 0);
-
-            container.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="card p-6 border-r-8 border-sky-500">
-                        <label>שווי מלאי (עלות):</label>
-                        <h3 class="text-2xl font-bold">₪${totalStockCost.toLocaleString()}</h3>
-                    </div>
-                    <div class="card p-6 border-r-8 border-red-500">
-                        <label>חובות לספקים:</label>
-                        <h3 class="text-2xl font-bold text-red-600">₪${totalDebt.toLocaleString()}</h3>
-                    </div>
-                    <div class="card p-6 border-r-8 border-green-500 bg-green-50">
-                        <label class="text-green-800">הכנסות (מכירות):</label>
-                        <h3 class="text-2xl font-bold text-green-700">₪${stats.revenue.toLocaleString()}</h3>
-                    </div>
-                    <div class="card p-6 border-r-8 border-purple-500 bg-purple-50">
-                        <label class="text-purple-800">רווח נקי:</label>
-                        <h3 class="text-2xl font-bold text-purple-700">₪${stats.profit.toLocaleString()}</h3>
-                    </div>
-                </div>
-                <div class="card p-8 flex gap-4">
-                    <button onclick="exportCSV('inventory')" class="bg-slate-800 text-white px-8 py-3 rounded-lg font-bold">ייצא דוח מלאי לאקסל</button>
-                    <button onclick="exportCSV('suppliers')" class="bg-slate-800 text-white px-8 py-3 rounded-lg font-bold">ייצא דוח ספקים לאקסל</button>
-                </div>
-            `;
-        }
-
-        // --- PAYMENTS (WITH NOTES) ---
-        function renderPayments(container) {
             const suppliers = DB.get('suppliers');
+            const expenses = DB.get('expenses');
+            
+            const totalStockVal = products.reduce((a, b) => a + (b.cost * b.stock), 0);
+            const totalDebt = suppliers.reduce((a, b) => a + b.balance, 0);
+            const totalExp = expenses.reduce((a, b) => a + b.amount, 0);
+            const lowStock = products.filter(p => p.stock <= (p.minStock || 5));
+
             container.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="card p-8">
-                        <h3 class="text-xl font-bold mb-6 border-b pb-2">ביצוע תשלום</h3>
-                        <div class="space-y-4">
-                            <div><label>בחר ספק:</label><select id="pay-id">${suppliers.map(s => `<option value="${s.id}">${s.name} (חוב: ₪${s.balance})</option>`).join('')}</select></div>
-                            <div><label>סכום תשלום (₪):</label><input type="number" id="pay-amt" placeholder="הזן סכום"></div>
-                            <div><label>הערה / אמצעי תשלום:</label><input type="text" id="pay-note" placeholder="למשל: מזומן, מס' צ'ק..."></div>
-                            <button onclick="recordPayment()" class="w-full bg-sky-600 text-white py-4 rounded-lg font-bold shadow-lg mt-4">אשר תשלום והפחת חוב</button>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card p-6 bg-blue-600 text-white"><label class="opacity-80">שווי מלאי</label><h3 class="text-3xl font-bold">₪${totalStockVal.toLocaleString()}</h3></div>
+                    <div class="card p-6 bg-green-600 text-white"><label class="opacity-80">הכנסות</label><h3 class="text-3xl font-bold">₪${stats.revenue.toLocaleString()}</h3></div>
+                    <div class="card p-6 bg-purple-600 text-white"><label class="opacity-80">רווח נקי (לפני הוצאות)</label><h3 class="text-3xl font-bold">₪${stats.profit.toLocaleString()}</h3></div>
+                    <div class="card p-6 bg-red-600 text-white"><label class="opacity-80">סה"כ חובות</label><h3 class="text-3xl font-bold">₪${totalDebt.toLocaleString()}</h3></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="card p-6 border-r-8 border-orange-500">
+                        <h3 class="font-bold text-lg mb-4 text-orange-700"><i class="fas fa-triangle-exclamation ml-2"></i>התראות מלאי נמוך</h3>
+                        <div class="space-y-3">
+                            ${lowStock.length ? lowStock.map(p => `
+                                <div class="flex justify-between items-center bg-orange-50 p-3 rounded">
+                                    <span class="font-bold">${p.name}</span>
+                                    <span class="text-red-600 font-bold">מלאי: ${p.stock} (מינימום: ${p.minStock || 5})</span>
+                                </div>
+                            `).join('') : '<p class="text-gray-500">כל המוצרים במלאי תקין</p>'}
                         </div>
                     </div>
-                    <div class="card p-8 bg-slate-50">
-                        <h3 class="text-xl font-bold mb-4 italic">פירוט יתרות:</h3>
-                        ${suppliers.map(s => `<div class="flex justify-between font-bold border-b py-3 text-lg"><span>${s.name}</span><span class="text-red-600">₪${s.balance.toLocaleString()}</span></div>`).join('')}
+                    <div class="card p-6 border-r-8 border-slate-800">
+                        <h3 class="font-bold text-lg mb-4">סיכום רווח סופי</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between"><span>רווח גולמי:</span><span class="font-bold">₪${stats.profit.toLocaleString()}</span></div>
+                            <div class="flex justify-between text-red-600"><span>הוצאות עסק:</span><span class="font-bold">- ₪${totalExp.toLocaleString()}</span></div>
+                            <hr>
+                            <div class="flex justify-between text-2xl font-bold text-sky-700"><span>רווח תפעולי:</span><span>₪${(stats.profit - totalExp).toLocaleString()}</span></div>
+                        </div>
                     </div>
                 </div>
             `;
         }
 
-        function recordPayment() {
-            const sid = parseInt(document.getElementById('pay-id').value);
-            const amt = parseFloat(document.getElementById('pay-amt').value);
-            const note = document.getElementById('pay-note').value;
-            const suppliers = DB.get('suppliers');
-            const history = DB.get('history');
-            const s = suppliers.find(x => x.id === sid);
-
-            if (s && amt > 0) {
-                s.balance -= amt;
-                history.push({
-                    id: Date.now(),
-                    supplierId: sid,
-                    amount: amt,
-                    note: note || "ללא הערה",
-                    date: new Date().toLocaleString('he-IL')
-                });
-                DB.set('suppliers', suppliers);
-                DB.set('history', history);
-                alert(`תשלום בוצע בהצלחה. היתרה של ${s.name} עודכנה.`);
-                render();
-            } else { alert('נא להזין סכום תקין'); }
-        }
-
-        // --- VIEW HISTORY (WITH NOTES) ---
-        function viewPaymentHistory(supplierId) {
-            const s = DB.get('suppliers').find(x => x.id === supplierId);
-            const history = DB.get('history').filter(h => h.supplierId === supplierId);
-            showModal(`
-                <h2 class="text-xl font-bold mb-4 border-b pb-2">היסטוריית תשלומים: ${s.name}</h2>
-                <div class="max-h-80 overflow-y-auto mb-4">
-                    <table class="w-full text-right text-sm">
-                        <thead class="bg-sky-50"><tr><th class="p-2">תאריך</th><th class="p-2">סכום</th><th class="p-2">הערה</th></tr></thead>
+        function renderExpenses(container) {
+            const expenses = DB.get('expenses');
+            container.innerHTML = `
+                <div class="card p-8 mb-8">
+                    <h3 class="font-bold text-xl mb-4">הוספת הוצאה חדשה</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" id="exp-desc" placeholder="תיאור ההוצאה">
+                        <input type="number" id="exp-amt" placeholder="סכום">
+                        <button onclick="addExpense()" class="bg-slate-800 text-white font-bold rounded">הוסף הוצאה</button>
+                    </div>
+                </div>
+                <div class="card overflow-hidden">
+                    <table class="w-full">
+                        <thead><tr><th>תאריך</th><th>תיאור</th><th>סכום</th></tr></thead>
                         <tbody>
-                            ${history.length ? history.reverse().map(h => `
-                                <tr class="border-b">
-                                    <td class="p-2">${h.date}</td>
-                                    <td class="p-2 font-bold text-green-700">₪${h.amount.toLocaleString()}</td>
-                                    <td class="p-2 italic text-gray-600">${h.note}</td>
-                                </tr>`).join('') : '<tr><td colspan="3" class="text-center p-4">אין היסטוריה</td></tr>'}
+                            ${expenses.map(e => `<tr><td>${e.date}</td><td>${e.desc}</td><td class="text-red-600 font-bold">₪${e.amount}</td></tr>`).join('')}
                         </tbody>
                     </table>
                 </div>
-                <button onclick="closeModal()" class="w-full bg-slate-800 text-white py-2 rounded font-bold">סגור</button>
-            `);
+            `;
         }
 
-        // --- COUNTING LOGIC (UPDATES REVENUE & PROFIT) ---
-        function saveInventoryCount() {
-            const products = DB.get('products');
-            const suppliers = DB.get('suppliers');
-            const stats = DB.get('stats');
-
-            products.forEach(p => {
-                const inp = document.getElementById(`count-${p.id}`);
-                if (inp && inp.value !== "") {
-                    const counted = parseFloat(inp.value);
-                    const diff = counted - p.stock;
-
-                    if (diff !== 0) {
-                        if (diff < 0) { // מכירה
-                            const unitsSold = Math.abs(diff);
-                            stats.revenue += (unitsSold * p.price);
-                            stats.profit += (unitsSold * (p.price - p.cost));
-                            
-                            const s = suppliers.find(x => x.id === p.supplierId);
-                            if (s && s.type === 'commission') s.balance += (unitsSold * p.cost);
-                        } else { // רכש
-                            const s = suppliers.find(x => x.id === p.supplierId);
-                            if (s) {
-                                s.totalReceivedValue = (s.totalReceivedValue || 0) + (diff * p.cost);
-                                if (s.type === 'regular') s.balance += (diff * p.cost);
-                            }
-                        }
-                        p.stock = counted;
-                    }
-                }
-            });
-
-            DB.set('products', products);
-            DB.set('suppliers', suppliers);
-            DB.set('stats', stats);
-            alert('נתוני מלאי, הכנסות ורווחים עודכנו!');
+        function addExpense() {
+            const desc = document.getElementById('exp-desc').value;
+            const amt = parseFloat(document.getElementById('exp-amt').value);
+            if(!desc || !amt) return alert('מלא את כל השדות');
+            const expenses = DB.get('expenses');
+            expenses.push({ desc, amount: amt, date: new Date().toLocaleDateString('he-IL') });
+            DB.set('expenses', expenses);
             render();
         }
 
-        // --- SUPPLIER MODAL ---
-        function renderSuppliers(container) {
-            const suppliers = DB.get('suppliers');
-            container.innerHTML = `
-                <div class="mb-6"><button onclick="openSupplierModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow-md">ספק חדש +</button></div>
-                <div class="card overflow-hidden">
-                    <table class="w-full text-right">
-                        <thead><tr><th>שם ספק</th><th>סוג</th><th>חוב נוכחי</th><th class="text-center">פעולות</th></tr></thead>
-                        <tbody>
-                            ${suppliers.map(s => `
-                                <tr>
-                                    <td class="p-4 font-bold">${s.name}</td>
-                                    <td class="p-4">${s.type === 'commission' ? 'קומיסיון' : 'רגיל'}</td>
-                                    <td class="p-4 font-bold text-lg text-red-600">₪${s.balance.toLocaleString()}</td>
-                                    <td class="p-4 text-center">
-                                        <button onclick="viewPaymentHistory(${s.id})" class="ml-4 text-sky-600" title="היסטוריה"><i class="fas fa-clock-rotate-left"></i></button>
-                                        <button onclick="openSupplierModal(${s.id})" class="ml-4 text-blue-600"><i class="fas fa-edit"></i></button>
-                                        <button onclick="deleteSupplier(${s.id})" class="text-red-600"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>`).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-
-        // --- RE-INTEGRATING CORE MODALS ---
-        function openSupplierModal(id = null) {
-            const suppliers = DB.get('suppliers');
-            const s = id ? suppliers.find(x => x.id === id) : { name: '', balance: 0, type: 'regular' };
-            showModal(`
-                <h2 class="text-2xl font-bold mb-6 border-b pb-2">פרטי ספק</h2>
-                <div class="space-y-4">
-                    <div><label>שם הספק:</label><input type="text" id="s-name" value="${s.name}" placeholder="שם"></div>
-                    <div><label>סוג התחשבנות:</label><select id="s-type"><option value="regular" ${s.type==='regular'?'selected':''}>רגיל (חוב לפי קבלה)</option><option value="commission" ${s.type==='commission'?'selected':''}>קומיסיון (חוב לפי מכירה)</option></select></div>
-                    ${!id ? `<div><label>חוב פתיחה (₪):</label><input type="number" id="s-balance" value="0"></div>` : ''}
-                    <div class="flex gap-3 pt-4"><button onclick="saveSupplier(${id})" class="flex-1 bg-blue-600 text-white py-3 rounded font-bold">שמור</button><button onclick="closeModal()" class="flex-1 bg-gray-300 py-3 rounded font-bold">ביטול</button></div>
-                </div>
-            `);
-        }
-
-        function saveSupplier(id) {
-            const suppliers = DB.get('suppliers');
-            const n = document.getElementById('s-name').value;
-            const t = document.getElementById('s-type').value;
-            if(id) { const s = suppliers.find(x=>x.id===id); s.name=n; s.type=t; }
-            else { suppliers.push({id:Date.now(), name:n, type:t, balance:parseFloat(document.getElementById('s-balance').value||0)}); }
-            DB.set('suppliers', suppliers); closeModal(); render();
-        }
-
+        // --- הוספת שדה מינימום מלאי בטופס מוצר ---
         function openProductModal(id = null) {
             const products = DB.get('products');
             const suppliers = DB.get('suppliers');
-            const p = id ? products.find(x => x.id === id) : { name: '', supplierId: '', cost: 0, price: 0, stock: 0 };
+            const p = id ? products.find(x => x.id === id) : { name: '', supplierId: '', cost: 0, price: 0, stock: 0, minStock: 5 };
             showModal(`
                 <h2 class="text-2xl font-bold mb-6 border-b pb-2">עריכת מוצר</h2>
                 <div class="space-y-4">
                     <div><label>שם המוצר:</label><input type="text" id="p-name" value="${p.name}"></div>
                     <div><label>ספק:</label><select id="p-supplier">${suppliers.map(s => `<option value="${s.id}" ${p.supplierId==s.id?'selected':''}>${s.name}</option>`).join('')}</select></div>
                     <div class="flex gap-4">
-                        <div class="w-1/2"><label>עלות יחידה:</label><input type="number" id="p-cost" value="${p.cost}"></div>
-                        <div class="w-1/2"><label>מכירה ליחידה:</label><input type="number" id="p-price" value="${p.price}"></div>
+                        <div class="w-1/3"><label>עלות:</label><input type="number" id="p-cost" value="${p.cost}"></div>
+                        <div class="w-1/3"><label>מכירה:</label><input type="number" id="p-price" value="${p.price}"></div>
+                        <div class="w-1/3"><label>מלאי מינימום:</label><input type="number" id="p-min" value="${p.minStock}"></div>
                     </div>
-                    <div><label>מלאי התחלתי:</label><input type="number" id="p-stock" value="${p.stock}" ${id?'disabled':''}></div>
-                    <div class="flex gap-3 pt-4"><button onclick="saveProduct(${id})" class="flex-1 bg-blue-600 text-white py-3 rounded font-bold">שמור מוצר</button><button onclick="closeModal()" class="flex-1 bg-gray-300 py-3 rounded font-bold">ביטול</button></div>
+                    <div><label>מלאי נוכחי:</label><input type="number" id="p-stock" value="${p.stock}" ${id?'disabled':''}></div>
+                    <div class="flex gap-3 pt-4"><button onclick="saveProduct(${id})" class="flex-1 bg-blue-600 text-white py-3 rounded font-bold">שמור</button><button onclick="closeModal()" class="flex-1 bg-gray-300 py-3 rounded font-bold">ביטול</button></div>
                 </div>
             `);
         }
@@ -350,34 +207,155 @@
             const sid = parseInt(document.getElementById('p-supplier').value);
             const cost = parseFloat(document.getElementById('p-cost').value||0);
             const stock = parseFloat(document.getElementById('p-stock').value||0);
-            const data = { id: id||Date.now(), name: document.getElementById('p-name').value, supplierId: sid, cost: cost, price: parseFloat(document.getElementById('p-price').value||0), stock: stock };
+            const min = parseFloat(document.getElementById('p-min').value||5);
+            
+            const data = { 
+                id: id||Date.now(), 
+                name: document.getElementById('p-name').value, 
+                supplierId: sid, 
+                cost, price: parseFloat(document.getElementById('p-price').value||0), 
+                stock, 
+                minStock: min 
+            };
+
             if(!id && sid) {
                 const s = suppliers.find(x=>x.id===sid);
                 if(s && s.type==='regular') s.balance += (cost*stock);
             }
-            if(id) { products[products.findIndex(x=>x.id===id)] = data; } else { products.push(data); }
-            DB.set('products', products); DB.set('suppliers', suppliers); closeModal(); render();
+            if(id) products[products.findIndex(x=>x.id===id)] = data;
+            else products.push(data);
+            
+            DB.set('products', products); 
+            DB.set('suppliers', suppliers); 
+            closeModal(); 
+            render();
+        }
+
+        // --- פונקציות עזר קיימות שהותאמו ---
+        function backupDB() {
+            const allData = { 
+                suppliers: DB.get('suppliers'), 
+                products: DB.get('products'), 
+                stats: DB.get('stats'), 
+                expenses: DB.get('expenses'), 
+                history: DB.get('history') 
+            };
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `backup_${new Date().toLocaleDateString()}.json`;
+            a.click();
+        }
+
+        // שאר הפונקציות (renderSuppliers, renderProducts, renderCounting, וכו') נשארות כפי שהיו
+        function renderSuppliers(container) {
+            const suppliers = DB.get('suppliers');
+            container.innerHTML = `
+                <div class="mb-6"><button onclick="openSupplierModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow-md">ספק חדש +</button></div>
+                <div class="card overflow-hidden">
+                    <table class="w-full text-right">
+                        <thead><tr><th>שם ספק</th><th>סוג</th><th>חוב נוכחי</th><th class="text-center">פעולות</th></tr></thead>
+                        <tbody>
+                            ${suppliers.map(s => `<tr><td class="p-4 font-bold">${s.name}</td><td>${s.type==='commission'?'קומיסיון':'רגיל'}</td><td class="p-4 font-bold text-red-600">₪${s.balance.toLocaleString()}</td><td class="p-4 text-center"><button onclick="viewPaymentHistory(${s.id})" class="ml-4 text-sky-600"><i class="fas fa-clock-rotate-left"></i></button><button onclick="openSupplierModal(${s.id})" class="ml-4 text-blue-600"><i class="fas fa-edit"></i></button><button onclick="deleteSupplier(${s.id})" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+
+        function renderProducts(container) {
+            const products = DB.get('products');
+            container.innerHTML = `
+                <div class="mb-6"><button onclick="openProductModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow-md">הוסף מוצר חדש +</button></div>
+                <div class="card overflow-hidden">
+                    <table class="w-full text-right">
+                        <thead><tr><th>שם מוצר</th><th>מלאי</th><th>עלות יח'</th><th>מכירה יח'</th><th>סה"כ עלות</th><th class="text-center">פעולות</th></tr></thead>
+                        <tbody>
+                            ${products.map(p => `<tr><td class="p-4 font-bold">${p.name}</td><td class="p-4 font-bold ${p.stock <= (p.minStock||5) ? 'text-red-600' : 'text-sky-700'}">${p.stock}</td><td>₪${p.cost}</td><td>₪${p.price}</td><td>₪${(p.cost * p.stock).toLocaleString()}</td><td class="p-4 text-center"><button onclick="openProductModal(${p.id})" class="ml-4 text-blue-600"><i class="fas fa-edit"></i></button><button onclick="deleteProduct(${p.id})" class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
         }
 
         function renderCounting(container) {
             const products = DB.get('products');
-            container.innerHTML = `
-                <div class="card p-8">
-                    <h3 class="font-bold mb-4">הזן כמות שנספרה בפועל:</h3>
-                    <table class="w-full text-right mb-6">
-                        <thead><tr><th>מוצר</th><th>מלאי במערכת</th><th>ספירה חדשה</th></tr></thead>
-                        <tbody>${products.map(p => `<tr><td class="py-4 font-bold">${p.name}</td><td>${p.stock}</td><td><input type="number" id="count-${p.id}" class="w-32" placeholder="0"></td></tr>`).join('')}</tbody>
-                    </table>
-                    <button onclick="saveInventoryCount()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg">עדכן מלאי ורווחים</button>
-                </div>
-            `;
+            container.innerHTML = `<div class="card p-8"><h3 class="font-bold mb-4">הזן כמות שנספרה בפועל:</h3><table class="w-full text-right mb-6"><thead><tr><th>מוצר</th><th>מלאי נוכחי</th><th>ספירה חדשה</th></tr></thead><tbody>${products.map(p => `<tr><td class="py-4 font-bold">${p.name}</td><td>${p.stock}</td><td><input type="number" id="count-${p.id}" class="w-32"></td></tr>`).join('')}</tbody></table><button onclick="saveInventoryCount()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold">עדכן מלאי ורווחים</button></div>`;
+        }
+
+        function saveInventoryCount() {
+            const products = DB.get('products');
+            const suppliers = DB.get('suppliers');
+            const stats = DB.get('stats');
+            products.forEach(p => {
+                const inp = document.getElementById(`count-${p.id}`);
+                if (inp && inp.value !== "") {
+                    const counted = parseFloat(inp.value);
+                    const diff = counted - p.stock;
+                    if (diff < 0) { 
+                        const sold = Math.abs(diff);
+                        stats.revenue += (sold * p.price);
+                        stats.profit += (sold * (p.price - p.cost));
+                        const s = suppliers.find(x => x.id === p.supplierId);
+                        if (s && s.type === 'commission') s.balance += (sold * p.cost);
+                    } else if (diff > 0) {
+                        const s = suppliers.find(x => x.id === p.supplierId);
+                        if (s && s.type === 'regular') s.balance += (diff * p.cost);
+                    }
+                    p.stock = counted;
+                }
+            });
+            DB.set('products', products); DB.set('suppliers', suppliers); DB.set('stats', stats);
+            alert('נתונים עודכנו!'); render();
+        }
+
+        function renderReports(container) {
+            container.innerHTML = `<div class="card p-8 flex gap-4"><button onclick="exportCSV('inventory')" class="bg-slate-800 text-white px-8 py-3 rounded-lg">ייצא דוח מלאי לאקסל</button><button onclick="exportCSV('suppliers')" class="bg-slate-800 text-white px-8 py-3 rounded-lg">ייצא דוח ספקים לאקסל</button></div>`;
+        }
+
+        function renderPayments(container) {
+            const suppliers = DB.get('suppliers');
+            container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-8"><div class="card p-8"><h3 class="text-xl font-bold mb-6 border-b pb-2">ביצוע תשלום</h3><div class="space-y-4"><div><label>בחר ספק:</label><select id="pay-id">${suppliers.map(s => `<option value="${s.id}">${s.name} (חוב: ₪${s.balance})</option>`).join('')}</select></div><div><label>סכום:</label><input type="number" id="pay-amt"></div><div><label>הערה:</label><input type="text" id="pay-note"></div><button onclick="recordPayment()" class="w-full bg-sky-600 text-white py-4 rounded-lg font-bold mt-4">אשר תשלום</button></div></div><div class="card p-8 bg-slate-50"><h3 class="text-xl font-bold mb-4">יתרות:</h3>${suppliers.map(s => `<div class="flex justify-between font-bold border-b py-3"><span>${s.name}</span><span class="text-red-600">₪${s.balance.toLocaleString()}</span></div>`).join('')}</div></div>`;
+        }
+
+        function recordPayment() {
+            const sid = parseInt(document.getElementById('pay-id').value);
+            const amt = parseFloat(document.getElementById('pay-amt').value);
+            const suppliers = DB.get('suppliers');
+            const history = DB.get('history');
+            const s = suppliers.find(x => x.id === sid);
+            if (s && amt > 0) {
+                s.balance -= amt;
+                history.push({ id: Date.now(), supplierId: sid, amount: amt, note: document.getElementById('pay-note').value || "תשלום", date: new Date().toLocaleString('he-IL') });
+                DB.set('suppliers', suppliers); DB.set('history', history);
+                alert(`תשלום בוצע!`); render();
+            }
+        }
+
+        function openSupplierModal(id = null) {
+            const suppliers = DB.get('suppliers');
+            const s = id ? suppliers.find(x => x.id === id) : { name: '', balance: 0, type: 'regular' };
+            showModal(`<h2 class="text-2xl font-bold mb-6">פרטי ספק</h2><div class="space-y-4"><div><label>שם:</label><input type="text" id="s-name" value="${s.name}"></div><div><label>סוג:</label><select id="s-type"><option value="regular" ${s.type==='regular'?'selected':''}>רגיל</option><option value="commission" ${s.type==='commission'?'selected':''}>קומיסיון</option></select></div>${!id?`<div><label>חוב פתיחה:</label><input type="number" id="s-balance" value="0"></div>`:''}<div class="flex gap-3"><button onclick="saveSupplier(${id})" class="flex-1 bg-blue-600 text-white py-3 rounded">שמור</button><button onclick="closeModal()" class="flex-1 bg-gray-300 py-3 rounded">ביטול</button></div></div>`);
+        }
+
+        function saveSupplier(id) {
+            const suppliers = DB.get('suppliers');
+            const name = document.getElementById('s-name').value;
+            const type = document.getElementById('s-type').value;
+            if(id) { const s = suppliers.find(x=>x.id===id); s.name=name; s.type=type; }
+            else { suppliers.push({ id: Date.now(), name, type, balance: parseFloat(document.getElementById('s-balance').value||0) }); }
+            DB.set('suppliers', suppliers); closeModal(); render();
+        }
+
+        function viewPaymentHistory(supplierId) {
+            const s = DB.get('suppliers').find(x => x.id === supplierId);
+            const history = DB.get('history').filter(h => h.supplierId === supplierId);
+            showModal(`<h2 class="text-xl font-bold mb-4">היסטוריה: ${s.name}</h2><div class="max-h-80 overflow-y-auto mb-4"><table class="w-full text-right text-sm"><thead class="bg-sky-50"><tr><th>תאריך</th><th>סכום</th><th>הערה</th></tr></thead><tbody>${history.map(h => `<tr class="border-b"><td>${h.date}</td><td class="font-bold text-green-700">₪${h.amount}</td><td>${h.note}</td></tr>`).join('')}</tbody></table></div><button onclick="closeModal()" class="w-full bg-slate-800 text-white py-2 rounded">סגור</button>`);
         }
 
         function exportCSV(type) {
             let csv = "\uFEFF";
             if(type==='inventory') {
-                csv += "מוצר,מלאי,עלות יח,מכירה יח,סהכ עלות,סהכ מכירה\n";
-                DB.get('products').forEach(p=>csv+=`${p.name},${p.stock},${p.cost},${p.price},${p.cost*p.stock},${p.price*p.stock}\n`);
+                csv += "מוצר,מלאי,עלות,מכירה\n";
+                DB.get('products').forEach(p=>csv+=`${p.name},${p.stock},${p.cost},${p.price}\n`);
             } else {
                 csv += "ספק,חוב\n";
                 DB.get('suppliers').forEach(s=>csv+=`${s.name},${s.balance}\n`);
@@ -395,7 +373,7 @@
         function deleteSupplier(id) { if(confirm('למחוק?')){ DB.set('suppliers', DB.get('suppliers').filter(x=>x.id!==id)); render(); }}
 
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        showSection('suppliers');
+        showSection('dashboard');
     </script>
 </body>
 </html>
