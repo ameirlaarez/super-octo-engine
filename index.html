@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Small Tools Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-100 font-sans h-screen flex flex-col">
 
-<body>
-
-  <nav>
-    <button onclick="showSection('dashboard')">דשבורד</button>
+  <!-- Nav -->
+  <nav class="bg-white shadow p-4 flex justify-between">
+    <span class="font-bold text-xl">Small Tools</span>
+    <button onclick="showSection('dashboard')" class="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600">דשבורד</button>
   </nav>
 
-  <main id="app"></main>
+  <!-- Main container -->
+  <main id="app" class="flex-1 p-6 overflow-auto"></main>
 
   <script type="module" src="./js/app.js"></script>
 </body>
