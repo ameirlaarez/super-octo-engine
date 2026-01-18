@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Store Keeper Enterprise Cloud</title>
+    <title>Store Keeper Suite v1.6 - Cloud Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -11,67 +11,79 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
-        * { color: #1e293b !important; }
-        body { font-family: 'Assistant', sans-serif; background-color: #f1f5f9; }
-        .sidebar-item.active { background-color: #0ea5e9; color: white !important; }
-        .sidebar-item.active i { color: white !important; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
-        input, select { border: 2px solid #cbd5e1 !important; padding: 10px; border-radius: 8px; width: 100%; margin-bottom: 12px; font-weight: 600; }
-        th { text-align: right; padding: 15px; border-bottom: 2px solid #e2e8f0; background: #f8fafc; font-weight: 800; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-weight: 500; }
-        .bg-white-text * { color: white !important; }
-        .modal-animate { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        * { color: #000000 !important; }
+        body { font-family: 'Assistant', sans-serif; background-color: #f0f9ff; }
+        .sidebar-item.active * { color: #ffffff !important; }
+        .sidebar-item.active { background-color: #0284c7; }
+        .bg-blue-600 *, .bg-green-600 *, .bg-red-600 *, .bg-slate-800 *, .bg-sky-600 *, .bg-slate-700 * { color: #ffffff !important; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #bae6fd; }
+        input, select { border: 2px solid #cbd5e1 !important; padding: 10px; font-weight: bold; border-radius: 8px; width: 100%; }
+        th { background-color: #f8fafc; border-bottom: 2px solid #0284c7; padding: 12px; font-weight: 800; }
+        td { border-bottom: 1px solid #e2e8f0; padding: 12px; font-weight: 600; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 0.9rem; }
+        #login-page { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <div id="login-page" class="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900">
+    <div id="login-page" class="fixed inset-0 z-[999] flex items-center justify-center">
         <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md text-center">
             <h1 class="text-4xl font-black mb-2 text-sky-600">Store Keeper</h1>
-            <p class="text-slate-400 mb-8 font-bold">Cloud Management System</p>
+            <p class="text-slate-400 mb-8 font-bold italic">Cloud Management Suite</p>
             <div id="auth-error" class="bg-red-50 border-r-4 border-red-500 text-red-600 p-3 rounded mb-4 text-sm hidden text-right"></div>
-            <input type="email" id="user-email" placeholder="אימייל">
-            <input type="password" id="user-pass" placeholder="סיסמה">
-            <button onclick="handleAuth('login')" class="w-full bg-sky-600 text-white py-3 rounded-lg font-bold hover:bg-sky-700 mb-4 transition shadow-lg">כניסה למערכת</button>
-            <button onclick="handleAuth('signup')" class="text-sky-600 text-sm font-bold hover:underline">משתמש חדש? הירשם כאן</button>
+            <input type="email" id="user-email" placeholder="אימייל" class="mb-4">
+            <input type="password" id="user-pass" placeholder="סיסמה" class="mb-6">
+            <button onclick="handleAuth('login')" class="w-full bg-sky-600 text-white py-3 rounded-lg font-bold hover:bg-sky-700 mb-4 transition">כניסה למערכת</button>
+            <button onclick="handleAuth('signup')" class="text-sky-600 text-sm font-bold hover:underline">משתמש חדש? צור חשבון בענן</button>
         </div>
     </div>
 
     <div id="app-content" class="hidden flex w-full h-full">
-        <aside class="w-72 bg-slate-800 flex flex-col shadow-2xl">
-            <div class="p-8 text-2xl font-black border-b border-slate-700 bg-white-text">
-                <span class="text-sky-400">STORE</span>KEEPER
+        <aside class="w-64 bg-slate-800 flex flex-col shadow-xl">
+            <div class="p-6 text-2xl font-bold border-b border-slate-700">
+                <span class="text-sky-400">Store Keeper</span>
+                <span class="text-xs block font-normal text-white italic">v1.6 Cloud Edition</span>
             </div>
-            <nav class="flex-1 mt-6 bg-white-text px-4">
-                <button onclick="showSection('dashboard')" class="sidebar-item w-full flex items-center px-4 py-3 mb-2 rounded-lg text-white hover:bg-slate-700 transition"><i class="fas fa-th-large ml-3"></i> דשבורד</button>
-                <button onclick="showSection('products')" class="sidebar-item w-full flex items-center px-4 py-3 mb-2 rounded-lg text-white hover:bg-slate-700 transition"><i class="fas fa-boxes ml-3"></i> ניהול מלאי</button>
-                <button onclick="showSection('suppliers')" class="sidebar-item w-full flex items-center px-4 py-3 mb-2 rounded-lg text-white hover:bg-slate-700 transition"><i class="fas fa-truck-moving ml-3"></i> ספקים וחובות</button>
-                <button onclick="showSection('counting')" class="sidebar-item w-full flex items-center px-4 py-3 mb-2 rounded-lg text-white hover:bg-slate-700 transition"><i class="fas fa-clipboard-check ml-3"></i> ספירת מלאי</button>
-                <button onclick="showSection('expenses')" class="sidebar-item w-full flex items-center px-4 py-3 mb-2 rounded-lg text-white hover:bg-slate-700 transition"><i class="fas fa-file-invoice-dollar ml-3"></i> הוצאות</button>
+            <nav class="flex-1 mt-4">
+                <button onclick="showSection('suppliers')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
+                    <i class="fas fa-address-book ml-3 text-white"></i> <span class="text-white">ספקים וחשבונות</span>
+                </button>
+                <button onclick="showSection('products')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
+                    <i class="fas fa-boxes ml-3 text-white"></i> <span class="text-white">ניהול מלאי</span>
+                </button>
+                <button onclick="showSection('counting')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
+                    <i class="fas fa-list-check ml-3 text-white"></i> <span class="text-white">ספירת מלאי</span>
+                </button>
+                <button onclick="showSection('payments')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
+                    <i class="fas fa-money-bill-transfer ml-3 text-white"></i> <span class="text-white">תשלומים</span>
+                </button>
+                <button onclick="showSection('reports')" class="sidebar-item w-full flex items-center px-6 py-4 hover:bg-slate-700 transition">
+                    <i class="fas fa-chart-pie ml-3 text-white"></i> <span class="text-white">דוחות ורווח</span>
+                </button>
             </nav>
-            <div class="p-4 border-t border-slate-700">
-                <button onclick="logout()" class="w-full flex items-center px-4 py-3 text-red-400 hover:bg-red-900/30 rounded-lg transition font-bold"><i class="fas fa-sign-out-alt ml-3"></i> התנתק</button>
-            </div>
+            <button onclick="logout()" class="p-6 bg-slate-900 text-red-400 font-bold hover:bg-red-900/20 transition">
+                <i class="fas fa-power-off ml-2"></i> התנתק מהענן
+            </button>
         </aside>
 
         <main class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-20 bg-white border-b flex items-center justify-between px-10 shadow-sm">
-                <h2 id="section-title" class="text-2xl font-black text-slate-800 uppercase tracking-tight">דשבורד</h2>
+            <header class="h-16 bg-white border-b border-sky-200 flex items-center justify-between px-8">
+                <h2 id="section-title" class="text-xl font-bold">טוען...</h2>
                 <div class="flex items-center gap-4">
-                    <span id="user-display" class="bg-sky-50 text-sky-700 px-4 py-1 rounded-full text-sm font-bold"></span>
+                    <div id="current-date" class="font-bold text-sm"></div>
+                    <span id="sync-status" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">מעודכן לענן</span>
                 </div>
             </header>
-            <section id="content-area" class="p-10 overflow-y-auto"></section>
+            <section id="content-area" class="p-8 overflow-y-auto"></section>
         </main>
     </div>
 
-    <div id="modal-overlay" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm">
-        <div id="modal-content" class="bg-white rounded-2xl p-8 w-full max-w-xl shadow-2xl relative modal-animate"></div>
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 w-full max-w-lg shadow-2xl border-t-4 border-sky-500" id="modal-content"></div>
     </div>
 
     <script>
-        // --- קונפיגורציה ---
+        // --- קונפיגורציה Firebase ---
         const firebaseConfig = {
             apiKey: "AIzaSyB8rBuducW6nLHE2dHgPqYeWew7OuMB4YA",
             authDomain: "small-tools-for-a-big-life.firebaseapp.com",
@@ -85,19 +97,18 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         let currentUser = null;
-        let currentSection = 'dashboard';
 
         // --- ניהול משתמשים ---
         async function handleAuth(type) {
             const email = document.getElementById('user-email').value;
             const pass = document.getElementById('user-pass').value;
-            const errorDiv = document.getElementById('auth-error');
+            const errDiv = document.getElementById('auth-error');
             try {
                 if (type === 'login') await auth.signInWithEmailAndPassword(email, pass);
                 else await auth.createUserWithEmailAndPassword(email, pass);
             } catch (e) {
-                errorDiv.innerText = "שגיאה: " + e.message;
-                errorDiv.classList.remove('hidden');
+                errDiv.innerText = "שגיאה: " + e.message;
+                errDiv.classList.remove('hidden');
             }
         }
 
@@ -106,8 +117,7 @@
                 currentUser = user;
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
-                document.getElementById('user-display').innerText = user.email;
-                showSection('dashboard');
+                showSection('suppliers');
             } else {
                 document.getElementById('login-page').classList.remove('hidden');
                 document.getElementById('app-content').classList.add('hidden');
@@ -116,187 +126,70 @@
 
         function logout() { auth.signOut(); }
 
-        // --- עבודה מול ענן ---
-        const Cloud = {
-            async get(col) {
-                const doc = await db.collection('users').doc(currentUser.uid).collection('data').doc(col).get();
+        // --- עבודה מול הענן ---
+        const CloudDB = {
+            async get(key) {
+                const doc = await db.collection('users').doc(currentUser.uid).collection('data').doc(key).get();
+                if (key === 'stats') return doc.exists ? doc.data() : { revenue: 0, profit: 0 };
                 return doc.exists ? doc.data().items : [];
             },
-            async set(col, data) {
-                await db.collection('users').doc(currentUser.uid).collection('data').doc(col).set({ items: data });
+            async set(key, data) {
+                document.getElementById('sync-status').innerText = 'מסנכרן...';
+                const payload = (key === 'stats') ? data : { items: data };
+                await db.collection('users').doc(currentUser.uid).collection('data').doc(key).set(payload);
+                document.getElementById('sync-status').innerText = 'מעודכן לענן';
                 render();
             }
         };
 
-        // --- פונקציות ניווט ותצוגה ---
-        function showSection(s) {
-            currentSection = s;
-            document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-            const titles = {'dashboard':'דשבורד', 'products':'ניהול מלאי', 'suppliers':'ספקים וחובות', 'counting':'ספירת מלאי', 'expenses':'הוצאות'};
-            document.getElementById('section-title').innerText = titles[s];
+        let currentSection = 'suppliers';
+
+        async function showSection(section) {
+            currentSection = section;
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            // סימון הכפתור הפעיל
+            const btns = document.querySelectorAll('.sidebar-item');
+            btns.forEach(btn => {
+                if(btn.onclick.toString().includes(`'${section}'`)) btn.classList.add('active');
+            });
             render();
         }
 
         async function render() {
             const container = document.getElementById('content-area');
-            const products = await Cloud.get('products');
-            const suppliers = await Cloud.get('suppliers');
-            const expenses = await Cloud.get('expenses');
-
-            if (currentSection === 'dashboard') {
-                const totalStock = products.reduce((a, b) => a + (b.cost * b.stock), 0);
-                const totalDebt = suppliers.reduce((a, b) => a + (b.balance || 0), 0);
-                const totalExpenses = expenses.reduce((a,b) => a + b.amount, 0);
-
-                container.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 bg-white-text">
-                        <div class="card p-8 bg-sky-600 border-none"><p class="opacity-80 font-bold">שווי מלאי</p><h3 class="text-4xl font-black">₪${totalStock.toLocaleString()}</h3></div>
-                        <div class="card p-8 bg-rose-600 border-none"><p class="opacity-80 font-bold">חובות לספקים</p><h3 class="text-4xl font-black">₪${totalDebt.toLocaleString()}</h3></div>
-                        <div class="card p-8 bg-slate-800 border-none"><p class="opacity-80 font-bold">הוצאות</p><h3 class="text-4xl font-black">₪${totalExpenses.toLocaleString()}</h3></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="card p-6">
-                            <h4 class="font-black text-rose-600 mb-4 uppercase text-sm tracking-widest"><i class="fas fa-exclamation-triangle ml-2"></i>חוסרים במלאי</h4>
-                            ${products.filter(p => p.stock <= (p.minStock || 5)).map(p => `
-                                <div class="flex justify-between p-3 border-b border-slate-50"><span>${p.name}</span><span class="font-black text-rose-600">${p.stock} יח'</span></div>
-                            `).join('') || '<p class="text-slate-400">הכל תקין</p>'}
-                        </div>
-                        <div class="card p-6">
-                            <h4 class="font-black text-sky-600 mb-4 uppercase text-sm tracking-widest"><i class="fas fa-truck ml-2"></i>חובות גדולים</h4>
-                            ${suppliers.filter(s => s.balance > 0).sort((a,b)=>b.balance-a.balance).slice(0,5).map(s => `
-                                <div class="flex justify-between p-3 border-b border-slate-50"><span>${s.name}</span><span class="font-black text-rose-600">₪${s.balance.toLocaleString()}</span></div>
-                            `).join('') || '<p class="text-slate-400">אין חובות</p>'}
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (currentSection === 'products') {
-                container.innerHTML = `
-                    <div class="flex justify-between items-center mb-8">
-                        <button onclick="openProductModal()" class="bg-sky-600 text-white px-8 py-3 rounded-xl font-black shadow-lg shadow-sky-200">מוצר חדש +</button>
-                    </div>
-                    <div class="card overflow-hidden">
-                        <table class="w-full">
-                            <thead><tr><th>מוצר</th><th>מלאי</th><th>עלות</th><th>מינימום</th><th>פעולות</th></tr></thead>
-                            <tbody>
-                                ${products.map(p => `<tr>
-                                    <td class="font-bold">${p.name}</td>
-                                    <td class="${p.stock <= (p.minStock||5) ? 'text-rose-600 font-black' : ''}">${p.stock}</td>
-                                    <td>₪${p.cost}</td>
-                                    <td>${p.minStock || 5}</td>
-                                    <td>
-                                        <button onclick="editProduct(${p.id})" class="text-sky-500 ml-4"><i class="fas fa-edit"></i></button>
-                                        <button onclick="deleteItem('products', ${p.id})" class="text-rose-400"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>`).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }
-
-            if (currentSection === 'suppliers') {
-                container.innerHTML = `
-                    <button onclick="openSupplierModal()" class="bg-sky-600 text-white px-8 py-3 rounded-xl font-black mb-8 shadow-lg shadow-sky-200">ספק חדש +</button>
-                    <div class="card overflow-hidden">
-                        <table class="w-full">
-                            <thead><tr><th>ספק</th><th>טלפון</th><th>חוב</th><th>פעולות</th></tr></thead>
-                            <tbody>
-                                ${suppliers.map(s => `<tr>
-                                    <td class="font-bold">${s.name}</td>
-                                    <td>${s.phone || '-'}</td>
-                                    <td class="text-rose-600 font-black text-lg">₪${(s.balance || 0).toLocaleString()}</td>
-                                    <td>
-                                        <button onclick="manageDebt(${s.id})" class="bg-slate-100 px-4 py-1 rounded-lg text-xs font-black ml-2 uppercase">עדכן חוב</button>
-                                        <button onclick="deleteItem('suppliers', ${s.id})" class="text-rose-400"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>`).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }
+            const titles = { suppliers: 'ספקים והתחשבנות', products: 'מלאי נוכחי', counting: 'עדכון מלאי', payments: 'תשלום לספקים', reports: 'דוחות ביצועים' };
+            document.getElementById('section-title').innerText = titles[currentSection];
+            container.innerHTML = '<div class="text-center p-10 font-bold">טוען נתונים מהענן...</div>';
             
-            if (currentSection === 'expenses') {
-                container.innerHTML = `
-                    <button onclick="openExpenseModal()" class="bg-sky-600 text-white px-8 py-3 rounded-xl font-black mb-8">הוצאה חדשה +</button>
-                    <div class="card overflow-hidden">
-                        <table class="w-full">
-                            <thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סכום</th><th>פעולות</th></tr></thead>
-                            <tbody>
-                                ${expenses.map(e => `<tr>
-                                    <td>${e.date}</td>
-                                    <td class="font-bold">${e.description}</td>
-                                    <td><span class="bg-slate-100 px-2 py-1 rounded text-xs">${e.category}</span></td>
-                                    <td class="font-black text-rose-600">₪${e.amount}</td>
-                                    <td><button onclick="deleteItem('expenses', ${e.id})" class="text-rose-400"><i class="fas fa-trash"></i></button></td>
-                                </tr>`).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }
+            if (currentSection === 'suppliers') await renderSuppliers(container);
+            if (currentSection === 'products') await renderProducts(container);
+            if (currentSection === 'counting') await renderCounting(container);
+            if (currentSection === 'payments') await renderPayments(container);
+            if (currentSection === 'reports') await renderReports(container);
         }
 
-        // --- לוגיקת מודאלים (מוצרים, ספקים, הוצאות) ---
-        function openProductModal() {
-            showModal(`
-                <h3 class="text-2xl font-black mb-6 text-sky-800">הוספת מוצר חדש</h3>
-                <input type="text" id="p-name" placeholder="שם מוצר">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="p-cost" placeholder="מחיר עלות">
-                    <input type="number" id="p-stock" placeholder="מלאי נוכחי">
-                </div>
-                <input type="number" id="p-min" placeholder="מלאי מינימום להתראה" value="5">
-                <button onclick="saveProduct()" class="w-full bg-sky-600 text-white py-4 rounded-xl font-black mt-4 shadow-lg shadow-sky-100">שמור מוצר בענן</button>
-            `);
-        }
-
-        async function saveProduct() {
-            const products = await Cloud.get('products');
-            products.push({
-                id: Date.now(),
-                name: document.getElementById('p-name').value,
-                cost: parseFloat(document.getElementById('p-cost').value || 0),
-                stock: parseFloat(document.getElementById('p-stock').value || 0),
-                minStock: parseFloat(document.getElementById('p-min').value || 5)
-            });
-            await Cloud.set('products', products);
-            closeModal();
-        }
-
-        async function manageDebt(id) {
-            const suppliers = await Cloud.get('suppliers');
-            const s = suppliers.find(sup => sup.id === id);
-            showModal(`
-                <h3 class="text-2xl font-black mb-2">${s.name}</h3>
-                <p class="mb-6 text-slate-500 font-bold">חוב נוכחי: ₪${s.balance}</p>
-                <input type="number" id="debt-change" placeholder="סכום לשינוי (מינוס לתשלום)">
-                <button onclick="updateSupplierDebt(${id})" class="w-full bg-sky-600 text-white py-4 rounded-xl font-black">עדכן יתרה</button>
-            `);
-        }
-
-        async function updateSupplierDebt(id) {
-            const change = parseFloat(document.getElementById('debt-change').value || 0);
-            const suppliers = await Cloud.get('suppliers');
-            const s = suppliers.find(sup => sup.id === id);
-            s.balance = (s.balance || 0) + change;
-            await Cloud.set('suppliers', suppliers);
-            closeModal();
-        }
-
-        async function deleteItem(col, id) {
-            if (!confirm('בטוח שברצונך למחוק מהענן?')) return;
-            const items = await Cloud.get(col);
-            await Cloud.set(col, items.filter(i => i.id !== id));
-        }
-
-        function showModal(html) {
-            document.getElementById('modal-content').innerHTML = html + `<button onclick="closeModal()" class="absolute top-6 left-6 text-slate-400 hover:text-black"><i class="fas fa-times"></i></button>`;
-            document.getElementById('modal-overlay').classList.remove('hidden');
-        }
-        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-    </script>
-</body>
-</html>
+        // --- ניהול מוצרים ---
+        async function renderProducts(container) {
+            const products = await CloudDB.get('products');
+            container.innerHTML = `
+                <div class="mb-6"><button onclick="openProductModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow-md">הוסף מוצר חדש +</button></div>
+                <div class="card overflow-hidden">
+                    <table class="w-full text-right">
+                        <thead>
+                            <tr>
+                                <th>שם מוצר</th><th>מלאי</th><th>עלות יח'</th><th>מכירה יח'</th>
+                                <th class="bg-blue-50">סה"כ עלות</th><th class="bg-green-50">סה"כ מכירה</th>
+                                <th class="text-center">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.map(p => `
+                                <tr>
+                                    <td class="p-4 font-bold">${p.name}</td>
+                                    <td class="p-4 text-lg font-bold text-sky-700">${p.stock}</td>
+                                    <td class="p-4">₪${p.cost}</td>
+                                    <td class="p-4 text-green-700">₪${p.price}</td>
+                                    <td class="p-4 bg-blue-50 font-bold">₪${(p.cost * p.stock).toLocaleString()}</td>
+                                    <td class="p-4 bg-green-50 font-bold text-green-800">₪${(p.price * p.stock).toLocaleString()}</td>
+                                    <td class="p-4 text-center">
+                                        <button onclick="openProductModal(${p.id})" class="ml-4 text-blue-600"><i class="fas fa-edit"></i></button>
