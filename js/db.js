@@ -10,12 +10,19 @@ export const DB = {
   },
 
   init() {
-    ['products','suppliers','history'].forEach(k=>{
-      if(!localStorage.getItem(this.prefix+k)) this.set(k,[]);
-    });
-    if(!localStorage.getItem(this.prefix+'stats')) {
-      this.set('stats',{ revenue:0, profit:0 });
-    }
+  if (!localStorage.getItem(this.prefix + 'products')) {
+    this.set('products', [
+      { id: 1, name: 'מוצר בדיקה', stock: 10, cost: 20, price: 40 }
+    ]);
   }
-};
 
+  if (!localStorage.getItem(this.prefix + 'suppliers')) {
+    this.set('suppliers', [
+      { id: 1, name: 'ספק בדיקה', balance: 200 }
+    ]);
+  }
+
+  if (!localStorage.getItem(this.prefix + 'stats')) {
+    this.set('stats', { revenue: 500, profit: 300 });
+  }
+}
