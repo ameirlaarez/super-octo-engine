@@ -2,56 +2,69 @@ const Reports = {
     async render(container) {
         const products = await CloudDB.get('products');
         const suppliers = await CloudDB.get('suppliers');
-        const stats = await CloudDB.get('stats');
         
+        // חישובים
         const totalStockCost = products.reduce((a, b) => a + (b.cost * b.stock), 0);
-        const totalDebt = suppliers.reduce((a, b) => a + b.balance, 0);
+        const totalStockValue = products.reduce((a, b) => a + (b.price * b.stock), 0);
+        const totalDebt = suppliers.reduce((a, b) => a + (b.balance || 0), 0);
+        const potentialProfit = totalStockValue - totalStockCost;
 
         container.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="card p-6 border-r-8 border-sky-500">
-                    <label>שווי מלאי (עלות):</label>
-                    <h3 class="text-2xl font-bold">₪${totalStockCost.toLocaleString()}</h3>
+                <div class="card p-6 border-r-8 border-sky-500 bg-white">
+                    <div class="text-sm font-bold text-slate-500 uppercase">שווי מלאי (עלות)</div>
+                    <div class="text-2xl font-black">₪${totalStockCost.toLocaleString()}</div>
                 </div>
-                <div class="card p-6 border-r-8 border-red-500">
-                    <label>חובות לספקים:</label>
-                    <h3 class="text-2xl font-bold text-red-600">₪${totalDebt.toLocaleString()}</h3>
+                <div class="card p-6 border-r-8 border-red-500 bg-white">
+                    <div class="text-sm font-bold text-slate-500 uppercase">חובות לספקים</div>
+                    <div class="text-2xl font-black text-red-600">₪${totalDebt.toLocaleString()}</div>
                 </div>
                 <div class="card p-6 border-r-8 border-green-500 bg-green-50">
-                    <label class="text-green-800">הכנסות מצטברות:</label>
-                    <h3 class="text-2xl font-bold text-green-700">₪${stats.revenue.toLocaleString()}</h3>
+                    <div class="text-sm font-bold text-green-800 uppercase">פוטנציאל רווח מהמלאי</div>
+                    <div class="text-2xl font-black text-green-700">₪${potentialProfit.toLocaleString()}</div>
                 </div>
                 <div class="card p-6 border-r-8 border-purple-500 bg-purple-50">
-                    <label class="text-purple-800">רווח נקי מצטבר:</label>
-                    <h3 class="text-2xl font-bold text-purple-700">₪${stats.profit.toLocaleString()}</h3>
+                    <div class="text-sm font-bold text-purple-800 uppercase">כמות פריטים כוללת</div>
+                    <div class="text-2xl font-black text-purple-700">${products.reduce((a,b) => a + b.stock, 0)}</div>
                 </div>
             </div>
             
-            <div class="card p-8">
-                <h3 class="font-bold mb-4">כלים נוספים</h3>
-                <div class="flex gap-4">
-                    <button onclick="Reports.exportCSV('inventory')" class="bg-slate-800 text-white px-8 py-3 rounded-lg font-bold hover:bg-slate-700 transition">ייצא דוח מלאי לאקסל</button>
-                    <button onclick="Reports.exportCSV('suppliers')" class="bg-slate-800 text-white px-8 py-3 rounded-lg font-bold hover:bg-slate-700 transition">ייצא דוח ספקים לאקסל</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card p-8 bg-white shadow-sm border">
+                    <h3 class="font-bold text-lg mb-4 border-b pb-2">ייצוא נתונים</h3>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="Reports.exportCSV('products')" class="flex items-center justify-center gap-2 bg-slate-800 text-white p-3 rounded-lg font-bold hover:bg-slate-700 transition">
+                            <i class="fas fa-file-excel"></i> הורד דוח מלאי (CSV)
+                        </button>
+                        <button onclick="Reports.exportCSV('suppliers')" class="flex items-center justify-center gap-2 bg-slate-800 text-white p-3 rounded-lg font-bold hover:bg-slate-700 transition">
+                            <i class="fas fa-file-invoice-dollar"></i> הורד דוח ספקים (CSV)
+                        </button>
+                    </div>
+                </div>
+                <div class="card p-8 bg-sky-900 text-white shadow-lg">
+                    <h3 class="font-bold text-lg mb-4 text-sky-300">טיפ עסקי</h3>
+                    <p class="text-sky-100 italic">"ניהול מלאי הדוק מפחית הפסדים ב-15% בשנה בממוצע. הקפד על ספירת מלאי פעם בחודש."</p>
                 </div>
             </div>`;
     },
 
     async exportCSV(type) {
-        let csv = "\uFEFF"; // תמיכה בעברית באקסל
-        if (type === 'inventory') {
-            const data = await CloudDB.get('products');
-            csv += "מוצר,מלאי,עלות יח,מכירה יח,סהכ עלות\n";
-            data.forEach(p => csv += `${p.name},${p.stock},${p.cost},${p.price},${p.cost * p.stock}\n`);
+        const data = await CloudDB.get(type);
+        if (!data || data.length === 0) return alert("אין נתונים לייצוא");
+
+        let csv = "\uFEFF"; // BOM לעברית
+        if (type === 'products') {
+            csv += "שם מוצר,כמות,עלות,מחיר מכירה\n";
+            data.forEach(p => csv += `${p.name},${p.stock},${p.cost},${p.price}\n`);
         } else {
-            const data = await CloudDB.get('suppliers');
-            csv += "ספק,סוג,חוב\n";
-            data.forEach(s => csv += `${s.name},${s.type === 'commission' ? 'קומיסיון' : 'רגיל'},${s.balance}\n`);
+            csv += "שם ספק,סוג,יתרת חוב\n";
+            data.forEach(s => csv += `${s.name},${s.type},${s.balance}\n`);
         }
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", `${type}_report_${new Date().toLocaleDateString()}.csv`);
+        link.setAttribute("download", `${type}_${new Date().toLocaleDateString()}.csv`);
         link.click();
     }
 };
