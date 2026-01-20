@@ -2,7 +2,7 @@ const Reports = {
     async render(container) {
         const products = await CloudDB.get('products');
         const suppliers = await CloudDB.get('suppliers');
-        
+
         // חישובים
         const totalStockCost = products.reduce((a, b) => a + (b.cost * b.stock), 0);
         const totalStockValue = products.reduce((a, b) => a + (b.price * b.stock), 0);
@@ -25,7 +25,7 @@ const Reports = {
                 </div>
                 <div class="card p-6 border-r-8 border-purple-500 bg-purple-50">
                     <div class="text-sm font-bold text-purple-800 uppercase">כמות פריטים כוללת</div>
-                    <div class="text-2xl font-black text-purple-700">${products.reduce((a,b) => a + b.stock, 0)}</div>
+                    <div class="text-2xl font-black text-purple-700">${products.reduce((a, b) => a + b.stock, 0)}</div>
                 </div>
             </div>
             
@@ -57,8 +57,8 @@ const Reports = {
             csv += "שם מוצר,כמות,עלות,מחיר מכירה\n";
             data.forEach(p => csv += `${p.name},${p.stock},${p.cost},${p.price}\n`);
         } else {
-            csv += "שם ספק,סוג,יתרת חוב\n";
-            data.forEach(s => csv += `${s.name},${s.type},${s.balance}\n`);
+            csv += "שם ספק,יתרת חוב\n";
+            data.forEach(s => csv += `${s.name},${s.balance}\n`);
         }
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

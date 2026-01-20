@@ -1,3 +1,5 @@
+
+
 const UI = {
     showSection(sectionId) {
         State.currentSection = sectionId;
@@ -16,13 +18,20 @@ const UI = {
         document.getElementById('section-title').innerText = section.title;
         container.innerHTML = '<div class="text-center p-10 font-bold">טוען מהענן...</div>';
 
-        // קריאה לפונקציית הרינדור המתאימה לפי הקובץ
-        if (State.currentSection === 'suppliers') Suppliers.render(container);
-        if (State.currentSection === 'products') Products.render(container);
-        if (State.currentSection === 'counting') Products.renderCounting(container);
-        if (State.currentSection === 'payments') Payments.render(container);
-        if (State.currentSection === 'reports') Reports.render(container);
-        
+        try {
+            // קריאה לפונקציית הרינדור המתאימה לפי הקובץ
+            if (State.currentSection === 'dashboard') await renderDashboard(container);
+            if (State.currentSection === 'events') Events.render(container);
+            if (State.currentSection === 'suppliers') Suppliers.render(container);
+            if (State.currentSection === 'products') Products.render(container);
+            if (State.currentSection === 'counting') Products.renderCounting(container);
+            if (State.currentSection === 'payments') Payments.render(container);
+            if (State.currentSection === 'reports') Reports.render(container);
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = `<div class="text-red-500 font-bold text-center mt-10">שגיאה בטעינת הדף:<br>${e.message}</div>`;
+        }
+
         this.updateSidebar();
     },
     updateSidebar() {

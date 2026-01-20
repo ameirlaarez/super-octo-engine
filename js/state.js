@@ -1,9 +1,11 @@
 const State = {
     currentUser: null,
-    currentSection: 'suppliers',
+    currentSection: 'dashboard',
     sections: {
+        dashboard: { title: 'דשבורד', icon: 'fa-chart-line' },
+        events: { title: 'ניהול מכירות', icon: 'fa-calendar-alt' },
         suppliers: { title: 'ספקים והתחשבנות', icon: 'fa-address-book' },
-        products: { title: 'ניהול מלאי', icon: 'fa-boxes' },
+        products: { title: 'קטלוג מוצרים', icon: 'fa-boxes' },
         counting: { title: 'ספירת מלאי', icon: 'fa-list-check' },
         payments: { title: 'תשלומים', icon: 'fa-money-bill-transfer' },
         reports: { title: 'דוחות ורווח', icon: 'fa-chart-pie' }
